@@ -19,9 +19,6 @@ server.get("/", (req, res) => {
 server.post("/api/register", (req, res) => {
   let { username, password } = req.body;
   const hash = bcrypt.hashSync(password, 16);
-  bcrypt.compare("question", hash, function(err, res) {
-    res.status();
-  });
 
   Users.add({ username, password: hash })
     .then(saved => {
@@ -38,10 +35,10 @@ server.post("/api/login", (req, res) => {
   Users.findBy({ username })
     .first()
     .then(user => {
-      if (user) {
+      if (user && bcrypt.compareSync(password, user.password)) {
         res.status(200).json({ message: `Welcome ${user.username}!` });
       } else {
-        res.status(401).json({ message: "Invalid Credentials" });
+        res.status(401).json({ message: "YOU CANNOT PASS!" });
       }
     })
     .catch(error => {
@@ -57,23 +54,20 @@ server.get("/api/users", (req, res) => {
     .catch(err => res.send(err));
 });
 
-// server.get("/hash", (req, res) => {
-//   const name = req.query.name;
-//   const hash = bcrypt.compareSync("not_bacon", hash);
-//   //hash the name
-//   if (name.password === hash) {
-//     res.status(200).json({ message: `here is ${name} and ${hash}` });
-//   } else {
-//     res.status(401).json({ message: "user not found" });
-//   }
-//   res.send(`the hash for ${name} is ${hash}`);
-// });
+server.get("/hash", (req, res) => {
+  const name = req.query.name;
+  const hash = bcrypt.hashSync(name, 14);
+  res.send(`the has for ${name} is ${hash}`);
+});
 
-// server.get('/hash', (req, res) => {
-//   const name = req.query.name;
-//   const hash = bcrypt.hashSync(name, 14);
-//   res.send(`the has for ${name} is ${hash}`)
-// })
+// restricted middleware
+
+function restricted(req, res, next) {
+  let { username, password } = req.body;
+
+  if (username && password) {
+  }
+}
 
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`\n** Running on port ${port} **\n`));
